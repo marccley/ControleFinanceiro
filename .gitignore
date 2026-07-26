@@ -1,0 +1,24 @@
+# Ambiente virtual local
+venv/
+.venv/
+env/
+
+# Banco de dados (Impede que seus gastos reais fiquem expostos publicamente)
+database.db
+
+# Executáveis e arquivos temporários do PyInstaller
+build/
+dist/
+*.spec
+
+# Cache do compilador Python
+__pycache__/
+*.pyc
+
+# Backup locais
+*.zip
+*.rar
+
+# Diversos
+*.txt
+*.ico
