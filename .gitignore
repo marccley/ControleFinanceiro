@@ -2,6 +2,7 @@
 venv/
 .venv/
 env/
+.vscode/
 
 # Banco de dados (Impede que seus gastos reais fiquem expostos publicamente)
 database.db
