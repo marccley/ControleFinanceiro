@@ -3,6 +3,7 @@ venv/
 .venv/
 env/
 .vscode/
+other/
 
 # Banco de dados (Impede que seus gastos reais fiquem expostos publicamente)
 database.db
@@ -15,11 +16,3 @@ dist/
 # Cache do compilador Python
 __pycache__/
 *.pyc
-
-# Backup locais
-*.zip
-*.rar
-
-# Diversos
-*.txt
-*.ico
