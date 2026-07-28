@@ -194,7 +194,6 @@ def buscar_historicos_entre_datas(data_inicio: date, data_fim: date):
 
 def criar_grafico_por_conta():
     with Session(engine) as session:
-        # Mantém o filtro para trazer apenas contas ativas e com dinheiro
         statement = select(Conta).where(Conta.status == Status.ATIVO, Conta.valor > 0)
         contas = session.exec(statement).all()
         
@@ -204,19 +203,19 @@ def criar_grafico_por_conta():
         bancos = [i.banco for i in contas]
         total = [i.valor for i in contas]
         
+        # --- CORREÇÃO PARA O LINUX COMPILADO ---
+        import matplotlib
+        matplotlib.use('TkAgg') # Força o uso do backend gráfico do Tkinter integrado
         import matplotlib.pyplot as plt
+        # ----------------------------------------
+        
         plt.style.use('ggplot')
-        
-        # Aumentado altura da figura para acomodar o texto inclinado sem cortar
-        plt.figure(figsize=(8, 5)) 
+        plt.figure(figsize=(8, 5))
         plt.bar(bancos, total, color='teal')
-        
-        # --- Rotaciona os nomes em 45 graus e alinha à direita ---
         plt.xticks(rotation=45, ha='right')
-        
         plt.title('Saldos Atuais por Banco (Contas com Saldo)')
         plt.ylabel('Valor (R$)')
-        plt.tight_layout() # Garante que os nomes inclinados não fiquem para fora da janela
+        plt.tight_layout()
         plt.show()
         return True
 
