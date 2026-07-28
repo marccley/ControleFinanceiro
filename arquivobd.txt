@@ -1,0 +1,208 @@
+=====================================
+Bibliotecas Para Instalação
+=====================================
+python.exe -m pip install datetime
+python.exe -m pip install sqlmodel
+python.exe -m pip install typing
+python.exe -m pip install matplotlib
+python.exe -m pip install customtkinter
+python.exe -m pip install rich
+python.exe -m pip install pyinstaller
+python.exe -m pip install reportlab
+
+
+=====================================
+Criar Executável
+=====================================
+pyinstaller --noconsole --onefile --name="ControleFinanceiro" --collect-all customtkinter main.py
+
+pyinstaller --noconsole --onefile --name="ControleFinanceiro" --icon="financeiro.ico" --collect-all customtkinter main.py
+
+
+
+O que significam esses comandos?
+--noconsole: Oculta aquela janela preta do prompt de comando. O programa abrirá apenas a interface visual do CustomTkinter.
+--onefile: Junta todo o seu projeto e bibliotecas em um único arquivo .exe.
+--collect-all customtkinter: Força o PyInstaller a copiar todos os arquivos internos de temas escuros/claros da biblioteca visual.
+    Após terminar o processo, duas novas pastas serão criadas: build e dist. Entre na pasta dist e lá estará o seu arquivo ControleFinanceiro.exe 
+    pronto para ser movido para qualquer lugar do seu computador e rodar direto.
+
+
+Passo 3: Gerando a Versão para o LinuxAbra o terminal do seu sistema Linux (ou uma máquina virtual) dentro da pasta do projeto e siga estes passos:Garanta que o Python do Linux tenha o gerenciador de pacotes e o Tkinter instalados. No Ubuntu/Debian/Mint, digite:bashsudo apt update
+sudo apt install python3-pip python3-tk -y
+Use o código com cuidado.Instale as dependências do seu projeto e o PyInstaller no ambiente Linux:bashpip install customtkinter sqlmodel matplotlib pyinstaller
+Use o código com cuidado.Execute o comando de compilação idêntico ao do Windows:bashpyinstaller --noconsole --onefile --name="ControleFinanceiro" --collect-all customtkinter main.py
+Use o código com cuidado.O processo gerará um arquivo executável binário dentro da pasta dist. Para rodar o programa no Linux pelo terminal, navegue até a pasta dist e dê permissão de execução ao arquivo:bashcd dist
+chmod +x ControleFinanceiro
+./ControleFinanceiro
+Use o código com cuidado.(No Linux, você também pode dar dois cliques no arquivo gerado para abrir a interface gráfica diretamente, desde que o gerenciador de janelas permita executáveis de terceiros).
+
+
+
+
+=====================================
+Testes View.py
+=====================================
+# conta = Conta(valor=50, banco="teste 2")
+# criar_conta(conta)
+
+# listar = listar_ativas()
+# print(listar)
+
+# listar = listar_contas()
+# print(listar)
+
+# listar = listar_categorias()
+# print(listar)
+
+# desativar_conta(1)
+
+# ativar_conta(1)
+
+# transferir_saldo(2, 1, 40)
+
+# historico = Historico(data=date.today(), descricao="Compras de Mercado", tipo=Tipos.ENTRADA, valor=20, categoria_id=1, conta_id=1)
+# movimentar_dinheiro(historico)
+
+# historico = Historico(data=date.today(), descricao="Compras Água Mineral", tipo=Tipos.ENTRADA, valor=5.5, categoria_id=4, conta_id=2)
+# movimentar_dinheiro(historico)
+
+# historico = Historico(data=date.today(), descricao="Combustível no Carro", tipo=Tipos.ENTRADA, valor=50, categoria_id=21, conta_id=3)
+# movimentar_dinheiro(historico)
+
+# print(total_contas())
+
+# x = buscar_historicos_entre_datas(date.today() - timedelta(days=1), date.today() + timedelta(days=1))
+# print(x)
+
+# criar_grafico_por_conta()
+
+
+
+=====================================
+Importação de Contas
+=====================================
+INSERT INTO conta (valor, banco, status) VALUES (0.00, 'Banco Bradesco', 'ATIVO');
+INSERT INTO conta (valor, banco, status) VALUES (0.00, 'Banco Nubank', 'ATIVO');
+INSERT INTO conta (valor, banco, status) VALUES (0.00, 'Banco Santander', 'ATIVO');
+INSERT INTO conta (valor, banco, status) VALUES (0.00, 'Carteira', 'ATIVO');
+INSERT INTO conta (valor, banco, status) VALUES (0.00, 'Cartão Inter Jaise', 'ATIVO');
+INSERT INTO conta (valor, banco, status) VALUES (0.00, 'Cartão MP', 'ATIVO');
+INSERT INTO conta (valor, banco, status) VALUES (0.00, 'Cartão Nu Jaise', 'ATIVO');
+INSERT INTO conta (valor, banco, status) VALUES (0.00, 'Cartão Nu Marcio', 'ATIVO');
+INSERT INTO conta (valor, banco, status) VALUES (0.00, 'Cartão PicPay', 'ATIVO');
+INSERT INTO conta (valor, banco, status) VALUES (0.00, 'Cartão Visa', 'ATIVO');
+INSERT INTO conta (valor, banco, status) VALUES (0.00, 'Dívidas', 'ATIVO');
+INSERT INTO conta (valor, banco, status) VALUES (0.00, 'FE MP', 'ATIVO');
+INSERT INTO conta (valor, banco, status) VALUES (0.00, 'FE Neon', 'ATIVO');
+INSERT INTO conta (valor, banco, status) VALUES (0.00, 'FE Nubank 100% ', 'ATIVO');
+INSERT INTO conta (valor, banco, status) VALUES (0.00, 'FE Nubank 120%', 'ATIVO');
+INSERT INTO conta (valor, banco, status) VALUES (0.00, 'Infoeng', 'ATIVO');
+INSERT INTO conta (valor, banco, status) VALUES (0.00, 'Banco C6', 'INATIVO');
+INSERT INTO conta (valor, banco, status) VALUES (0.00, 'Banco Iti', 'INATIVO');
+INSERT INTO conta (valor, banco, status) VALUES (0.00, 'Caixa Tem', 'INATIVO');
+INSERT INTO conta (valor, banco, status) VALUES (0.00, 'Cartão C6', 'INATIVO');
+INSERT INTO conta (valor, banco, status) VALUES (0.00, 'Cartão Elo', 'INATIVO');
+INSERT INTO conta (valor, banco, status) VALUES (0.00, 'Cartão Iti', 'INATIVO');
+INSERT INTO conta (valor, banco, status) VALUES (0.00, 'Poupa Nu', 'INATIVO');
+INSERT INTO conta (valor, banco, status) VALUES (0.00, 'Spido', 'INATIVO');
+
+
+
+=====================================
+Importação de Categorias
+=====================================
+INSERT INTO categoria (categoria) VALUES ('Transferência');
+INSERT INTO categoria (categoria) VALUES ('01 - Residência');
+INSERT INTO categoria (categoria) VALUES ('01.1 - Aluguel');
+INSERT INTO categoria (categoria) VALUES ('02 - Alimentação');
+INSERT INTO categoria (categoria) VALUES ('02.1 - Compras');
+INSERT INTO categoria (categoria) VALUES ('03 - Taxas e Manutenção');
+INSERT INTO categoria (categoria) VALUES ('03.1 - Luz');
+INSERT INTO categoria (categoria) VALUES ('03.2 - Água');
+INSERT INTO categoria (categoria) VALUES ('03.4 - Celular');
+INSERT INTO categoria (categoria) VALUES ('03.5 - Internet');
+INSERT INTO categoria (categoria) VALUES ('03.6 - Seguro');
+INSERT INTO categoria (categoria) VALUES ('03.7 - Stream / Assinatura TV');
+INSERT INTO categoria (categoria) VALUES ('03.8 - Gás');
+INSERT INTO categoria (categoria) VALUES ('03.9 - Outros');
+INSERT INTO categoria (categoria) VALUES ('04 - Aquisição de Bens');
+INSERT INTO categoria (categoria) VALUES ('04.1 - Móveis');
+INSERT INTO categoria (categoria) VALUES ('04.2 - Imóveis');
+INSERT INTO categoria (categoria) VALUES ('04.3 - Elétrico / Eletrônico');
+INSERT INTO categoria (categoria) VALUES ('04.4 - Roupas e Calçados');
+INSERT INTO categoria (categoria) VALUES ('04.5 - Outros');
+INSERT INTO categoria (categoria) VALUES ('05 - Carro');
+INSERT INTO categoria (categoria) VALUES ('05.1 - Combustível');
+INSERT INTO categoria (categoria) VALUES ('05.2 - Manutenção');
+INSERT INTO categoria (categoria) VALUES ('05.3 - IPVA');
+INSERT INTO categoria (categoria) VALUES ('05.4 - Licenciamento');
+INSERT INTO categoria (categoria) VALUES ('05.5 - Seguro Obrigatório');
+INSERT INTO categoria (categoria) VALUES ('05.6 - Outros');
+INSERT INTO categoria (categoria) VALUES ('06 - Presente');
+INSERT INTO categoria (categoria) VALUES ('06.1 - Presentes');
+INSERT INTO categoria (categoria) VALUES ('07 - Saúde');
+INSERT INTO categoria (categoria) VALUES ('07.1 - Medicamentos');
+INSERT INTO categoria (categoria) VALUES ('07.2 - Consultas');
+INSERT INTO categoria (categoria) VALUES ('07.3 - Exames');
+INSERT INTO categoria (categoria) VALUES ('07.4 - Internações');
+INSERT INTO categoria (categoria) VALUES ('07.5- Plano de Saúde');
+INSERT INTO categoria (categoria) VALUES ('07.6 - Plano Odontológico');
+INSERT INTO categoria (categoria) VALUES ('08 - Tarifas e Impostos');
+INSERT INTO categoria (categoria) VALUES ('08.01 - CPMF');
+INSERT INTO categoria (categoria) VALUES ('08.02 - IRPF');
+INSERT INTO categoria (categoria) VALUES ('08.03 - INSS');
+INSERT INTO categoria (categoria) VALUES ('08.04 - Tarifas Bancarias');
+INSERT INTO categoria (categoria) VALUES ('08.05 - Empréstimos');
+INSERT INTO categoria (categoria) VALUES ('08.06 - Outros');
+INSERT INTO categoria (categoria) VALUES ('08.07 - Pensão');
+INSERT INTO categoria (categoria) VALUES ('08.08 - IPTU');
+INSERT INTO categoria (categoria) VALUES ('08.09 - Ajuda de Custo');
+INSERT INTO categoria (categoria) VALUES ('08.10 - MEI');
+INSERT INTO categoria (categoria) VALUES ('09 - Cartão de Crédito');
+INSERT INTO categoria (categoria) VALUES ('09.1 - Pagamento Cartão');
+INSERT INTO categoria (categoria) VALUES ('09.2 - Gastos de Clara');
+INSERT INTO categoria (categoria) VALUES ('09.3 - Gastos Casamento');
+INSERT INTO categoria (categoria) VALUES ('10 - Beleza e Cosméticos');
+INSERT INTO categoria (categoria) VALUES ('10.1 - Salão de Beleza');
+INSERT INTO categoria (categoria) VALUES ('10.2 - Cabelo');
+INSERT INTO categoria (categoria) VALUES ('10.3 - Cosmético');
+INSERT INTO categoria (categoria) VALUES ('10.4 - Perfume');
+INSERT INTO categoria (categoria) VALUES ('10.5 - Outros');
+INSERT INTO categoria (categoria) VALUES ('11- Educação');
+INSERT INTO categoria (categoria) VALUES ('11.1 - Mensalidade');
+INSERT INTO categoria (categoria) VALUES ('11.2 - Material Escolar');
+INSERT INTO categoria (categoria) VALUES ('11.3 - Apostilas');
+INSERT INTO categoria (categoria) VALUES ('11.4 - Cursos');
+INSERT INTO categoria (categoria) VALUES ('11.5 - Outros');
+INSERT INTO categoria (categoria) VALUES ('12 - Investimentos');
+INSERT INTO categoria (categoria) VALUES ('12.1 - Caderneta de Poupança');
+INSERT INTO categoria (categoria) VALUES ('12.2 - Bolsa de Valores');
+INSERT INTO categoria (categoria) VALUES ('12.3 - Tesouro Direto');
+INSERT INTO categoria (categoria) VALUES ('12.4 - Cooperativa');
+INSERT INTO categoria (categoria) VALUES ('12.5 - BDR');
+INSERT INTO categoria (categoria) VALUES ('12.6 - FII');
+INSERT INTO categoria (categoria) VALUES ('12.7 - Criptomoeda');
+INSERT INTO categoria (categoria) VALUES ('12.8 - Outros');
+INSERT INTO categoria (categoria) VALUES ('13 - Lazer');
+INSERT INTO categoria (categoria) VALUES ('13.1 - Bar & Restaurante');
+INSERT INTO categoria (categoria) VALUES ('13.2 - Festas & Clubes');
+INSERT INTO categoria (categoria) VALUES ('13.3 - Outros');
+INSERT INTO categoria (categoria) VALUES ('20 - Receita');
+INSERT INTO categoria (categoria) VALUES ('20.1 - Pagamento');
+INSERT INTO categoria (categoria) VALUES ('20.2 - Vale');
+INSERT INTO categoria (categoria) VALUES ('20.3 - Periculosidade');
+INSERT INTO categoria (categoria) VALUES ('20.4 - Hora Extra');
+INSERT INTO categoria (categoria) VALUES ('20.5 - Ticket');
+INSERT INTO categoria (categoria) VALUES ('20.6 - Férias');
+INSERT INTO categoria (categoria) VALUES ('20.7 - Decimo Terceiro');
+INSERT INTO categoria (categoria) VALUES ('20.8 - PPR');
+INSERT INTO categoria (categoria) VALUES ('20.9 - Outros');
+INSERT INTO categoria (categoria) VALUES ('21 - Diversos');
+INSERT INTO categoria (categoria) VALUES ('21.1 - Mão de Obra');
+INSERT INTO categoria (categoria) VALUES ('21.2 - Costura / Reparos');
+INSERT INTO categoria (categoria) VALUES ('21.3 - Roupas');
+INSERT INTO categoria (categoria) VALUES ('21.4 - Diversos');
+INSERT INTO categoria (categoria) VALUES ('21.5 - Empréstimo');
+INSERT INTO categoria (categoria) VALUES ('21.6 - FGTS');
+INSERT INTO categoria (categoria) VALUES ('21.7 - Rendimento');
