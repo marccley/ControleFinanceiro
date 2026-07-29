@@ -825,8 +825,6 @@ class AppFinanceiro(ctk.CTk):
     # --- ABA 4: EXTRATO ---
     def configurar_aba_extrato(self):
         self.aba_extrato = self.tabview.tab("Extrato")
-        
-        # Define 7 colunas proporcionais para alinhar perfeitamente todos os itens superiores
         self.aba_extrato.grid_columnconfigure((0, 1, 2, 3, 4, 5, 6), weight=1)
         self.aba_extrato.grid_rowconfigure(1, weight=1)
 
@@ -835,37 +833,60 @@ class AppFinanceiro(ctk.CTk):
         _, ultimo_dia_num = calendar.monthrange(hoje.year, hoje.month)
         ultimo_dia = hoje.replace(day=ultimo_dia_num).strftime("%d/%m/%Y")
 
-        # Coluna 0: Label Início e Campo de Data (Com tamanho menor e controlado)
         ctk.CTkLabel(self.aba_extrato, text="Início:").grid(row=0, column=0, padx=(10, 2), pady=15, sticky="w")
         self.txt_ext_inicio = ctk.CTkEntry(self.aba_extrato, width=90, justify="center")
         self.txt_ext_inicio.insert(0, primeiro_dia)
         self.txt_ext_inicio.grid(row=0, column=0, padx=(50, 5), pady=15, sticky="w")
 
-        # Coluna 1: Label Fim e Campo de Data (Com tamanho menor e controlado)
         ctk.CTkLabel(self.aba_extrato, text="Fim:").grid(row=0, column=1, padx=(5, 2), pady=15, sticky="w")
         self.txt_ext_fim = ctk.CTkEntry(self.aba_extrato, width=90, justify="center")
         self.txt_ext_fim.insert(0, ultimo_dia)
         self.txt_ext_fim.grid(row=0, column=1, padx=(40, 10), pady=15, sticky="w")
 
-        # Coluna 2: Label Banco e a sua Caixa de Seleção Customizada (Ocupando espaço central amplo)
         ctk.CTkLabel(self.aba_extrato, text="Banco:").grid(row=0, column=2, padx=(10, 2), pady=15, sticky="w")
         self.cb_ext_banco = CTkMenuScrollavelVerdadeiro(self.aba_extrato)
         self.cb_ext_banco.grid(row=0, column=2, padx=(60, 10), pady=15, sticky="ew")
 
-        # Coluna 3: Botão Filtrar (Separado com segurança da seleção de bancos)
         self.btn_filtrar = ctk.CTkButton(self.aba_extrato, text="🔍 Filtrar", width=100, command=self.filtrar_historico)
         self.btn_filtrar.grid(row=0, column=3, padx=10, pady=15, sticky="ew")
         
-        # Coluna 5: Botão de Exportação para o Excel (CSV)
         ctk.CTkButton(self.aba_extrato, text="📥 Excel (CSV)", fg_color="#27AE60", hover_color="#1E8449", width=110, command=self.exportar_extrato_csv).grid(row=0, column=5, padx=5, pady=15, sticky="ew")
-        
-        # Coluna 6: Botão de Exportação para PDF
         ctk.CTkButton(self.aba_extrato, text="📄 Gerar PDF", fg_color="#C0392B", hover_color="#922B21", width=110, command=self.exportar_extrato_pdf).grid(row=0, column=6, padx=(5, 10), pady=15, sticky="ew")
 
-        # Container rolável para a grade dinâmica do extrato (Abaixo da barra de ferramentas)
-        self.frame_grade_extrato = ctk.CTkScrollableFrame(self.aba_extrato)
-        self.frame_grade_extrato.grid(row=1, column=0, columnspan=7, padx=10, pady=5, sticky="nsew")
-        self.frame_grade_extrato.grid_columnconfigure((2, 3, 4), weight=1)
+        self.frame_tabela_extrato = ctk.CTkFrame(self.aba_extrato)
+        self.frame_tabela_extrato.grid(row=1, column=0, columnspan=7, padx=10, pady=5, sticky="nsew")
+
+        # Estilização do Treeview nativo de alta velocidade
+        style = ttk.Style()
+        style.theme_use("default")
+        style.configure("Treeview", background="#2b2b2b", foreground="white", rowheight=25, fieldbackground="#2b2b2b", borderwidth=0)
+        style.map('Treeview', background=[('selected', '#1f538d')])
+        style.configure("Treeview.Heading", background="#333333", foreground="white", borderwidth=0)
+
+        self.tree_extrato = ttk.Treeview(self.frame_tabela_extrato, columns=("id", "data", "descricao", "banco", "categoria", "tipo", "valor"), show="headings")
+        self.tree_extrato.heading("id", text="ID")
+        self.tree_extrato.heading("data", text="Data")
+        self.tree_extrato.heading("descricao", text="Descrição")
+        self.tree_extrato.heading("banco", text="Banco")
+        self.tree_extrato.heading("categoria", text="Categoria")
+        self.tree_extrato.heading("tipo", text="Tipo")
+        self.tree_extrato.heading("valor", text="Valor")
+
+        self.tree_extrato.column("id", width=50, anchor="center")
+        self.tree_extrato.column("data", width=95, anchor="center")
+        self.tree_extrato.column("descricao", width=250, anchor="w")
+        self.tree_extrato.column("banco", width=130, anchor="w")
+        self.tree_extrato.column("categoria", width=130, anchor="w")
+        self.tree_extrato.column("tipo", width=90, anchor="center")
+        self.tree_extrato.column("valor", width=110, anchor="e")
+        self.tree_extrato.pack(expand=True, fill="both", padx=5, pady=5)
+
+        # Trata os gatilhos de duplo clique e teclado
+        self.tree_extrato.bind("<Double-1>", self.editar_linha_extrato_popup)
+        self.tree_extrato.bind("<Delete>", lambda e: self.excluir_movimentacao_tree())
+
+        self.lbl_ajuda_extrato = ctk.CTkLabel(self.aba_extrato, text="💡 Dica: Dê duplo clique em uma linha para editar ou pressione DELETE para excluir um registro.", font=ctk.CTkFont(size=11, slant="italic"))
+        self.lbl_ajuda_extrato.grid(row=2, column=0, columnspan=7, padx=10, pady=5, sticky="w")
 
     def filtrar_historico(self):
         try:
@@ -873,71 +894,115 @@ class AppFinanceiro(ctk.CTk):
             data_fim = datetime.strptime(self.txt_ext_fim.get().strip(), "%d/%m/%Y").date()
             banco_sel = self.cb_ext_banco.get()
 
-            # Guarda os dados da última pesquisa para uso na exportação
             self.ultimos_resultados_filtrados = view.buscar_historicos_avancado(data_ini, data_fim, banco_sel)
 
-            for widget in self.frame_grade_extrato.winfo_children():
-                widget.destroy()
+            for item in self.tree_extrato.get_children():
+                self.tree_extrato.delete(item)
 
-            # Cabeçalhos com espaço para a nova coluna "Ação"
-            ctk.CTkLabel(self.frame_grade_extrato, text="ID", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, padx=3, pady=5)
-            ctk.CTkLabel(self.frame_grade_extrato, text="Data", font=ctk.CTkFont(weight="bold")).grid(row=0, column=1, padx=3, pady=5)
-            ctk.CTkLabel(self.frame_grade_extrato, text="Descrição", font=ctk.CTkFont(weight="bold")).grid(row=0, column=2, padx=3, pady=5)
-            ctk.CTkLabel(self.frame_grade_extrato, text="Banco", font=ctk.CTkFont(weight="bold")).grid(row=0, column=3, padx=3, pady=5)
-            ctk.CTkLabel(self.frame_grade_extrato, text="Categoria", font=ctk.CTkFont(weight="bold")).grid(row=0, column=4, padx=3, pady=5)
-            ctk.CTkLabel(self.frame_grade_extrato, text="Tipo", font=ctk.CTkFont(weight="bold")).grid(row=0, column=5, padx=3, pady=5)
-            ctk.CTkLabel(self.frame_grade_extrato, text="Valor", font=ctk.CTkFont(weight="bold")).grid(row=0, column=6, padx=3, pady=5)
-            ctk.CTkLabel(self.frame_grade_extrato, text="Ação", font=ctk.CTkFont(weight="bold")).grid(row=0, column=7, padx=3, pady=5)
-
-            todas_contas = view.listar_contas()
-            opcoes_bancos = [c.banco for c in todas_contas]
-            opcoes_categorias = [cat.categoria for cat in view.listar_categorias()]
-            opcoes_tipos = ["Entrada", "Saída"]
-
-            for idx, item in enumerate(self.ultimos_resultados_filtrados, start=1):
-                ctk.CTkLabel(self.frame_grade_extrato, text=str(item.id)).grid(row=idx, column=0, padx=3, pady=2)
+            for item in self.ultimos_resultados_filtrados:
+                nome_banco = item.conta.banco if item.conta else "N/A"
+                nome_cat = item.categoria.categoria if item.categoria else "Geral"
                 
-                ent_data = ctk.CTkEntry(self.frame_grade_extrato, width=85, justify="center")
-                ent_data.insert(0, item.data_formatada)
-                ent_data.grid(row=idx, column=1, padx=2, pady=2)
-
-                ent_desc = ctk.CTkEntry(self.frame_grade_extrato, width=160)
-                ent_desc.insert(0, item.descricao)
-                ent_desc.grid(row=idx, column=2, padx=2, pady=2, sticky="ew")
-
-                cb_banco = CTkMenuScrollavelVerdadeiro(self.frame_grade_extrato, values=opcoes_bancos, width=110, height=26)
-                cb_banco.set(item.conta.banco if item.conta else "N/A")
-                cb_banco.grid(row=idx, column=3, padx=2, pady=2)
-
-                cb_cat = CTkMenuScrollavelVerdadeiro(self.frame_grade_extrato, values=opcoes_categorias, width=110, height=26)
-                cb_cat.set(item.categoria.categoria if item.categoria else "Geral")
-                cb_cat.grid(row=idx, column=4, padx=2, pady=2)
-
-                cb_tipo = CTkMenuScrollavelVerdadeiro(self.frame_grade_extrato, values=opcoes_tipos, width=80, height=26)
-                cb_tipo.set(item.tipo.value)
-                cb_tipo.grid(row=idx, column=5, padx=2, pady=2)
-
-                ent_valor = ctk.CTkEntry(self.frame_grade_extrato, width=85, justify="right")
-                # Usa a variável 'item' correspondente ao laço
-                ent_valor.insert(0, formatar_moeda_br(item.valor))
-                ent_valor.grid(row=idx, column=6, padx=2, pady=2)
-
-                # Botão individual de exclusão definitiva para cada linha
-                btn_del = ctk.CTkButton(self.frame_grade_extrato, text="🗑️", fg_color="#C0392B", hover_color="#922B21", width=30, height=26,
-                                         command=lambda h_id=item.id: self.excluir_movimentacao_grade(h_id))
-                btn_del.grid(row=idx, column=7, padx=2, pady=2)
-
-                # Vincula os argumentos de salvamento usando os combos e inputs da linha
-                args_lambda = (item.id, ent_data, ent_desc, cb_banco, cb_cat, cb_tipo, ent_valor)
-                cb_banco.command = lambda v, al=args_lambda: self.salvar_linha_extrato(*al)
-                cb_cat.command = lambda v, al=args_lambda: self.salvar_linha_extrato(*al)
-                cb_tipo.command = lambda v, al=args_lambda: self.salvar_linha_extrato(*al)
-                ent_data.bind("<Return>", lambda e, al=args_lambda: self.salvar_linha_extrato(*al))
-                ent_desc.bind("<Return>", lambda e, al=args_lambda: self.salvar_linha_extrato(*al))
-                ent_valor.bind("<Return>", lambda e, al=args_lambda: self.salvar_linha_extrato(*al))
-
+                self.tree_extrato.insert("", "end", values=(
+                    item.id,
+                    item.data_formatada,
+                    item.descricao,
+                    nome_banco,
+                    nome_cat,
+                    item.tipo.value,
+                    f"R$ {formatar_moeda_br(item.valor)}"
+                ))
         except ValueError as e:
             messagebox.showerror("Erro de Filtro", f"Use o formato correto DD/MM/AAAA.\nErro: {e}")
+
+    def excluir_movimentacao_tree(self):
+        item_selecionado = self.tree_extrato.selection()
+        if not item_selecionado: return
+        valores = self.tree_extrato.item(item_selecionado, "values")
+        id_historico = int(valores[0])
+        self.excluir_movimentacao_grade(id_historico)
+
+    def editar_linha_extrato_popup(self, event):
+        """CORRIGIDO: Instancia uma janela real estável (ctk.CTk) sem grab_set para evitar travamento no Linux/Wayland"""
+        item_selecionado = self.tree_extrato.selection()
+        if not item_selecionado: return
+        valores = self.tree_extrato.item(item_selecionado, "values")
+        
+        id_hist = int(valores[0])
+        data_atual = valores[1]
+        desc_atual = valores[2]
+        banco_atual = valores[3]
+        cat_atual = valores[4]
+        tipo_atual = valores[5]
+        valor_atual = valores[6].replace("R$", "").replace(" ", "").strip()
+
+        # Janela base independente à prova de telas em branco no Linux
+        popup = ctk.CTk()
+        popup.title(f"📝 Editar Lançamento ID {id_hist}")
+        popup.geometry("420x550")
+        popup.resizable(False, False)
+
+        # Força o posicionamento em primeiro plano acima da janela mãe
+        popup.attributes("-topmost", True)
+        
+        # --- REMOVIDO O GRAB_SET() PARA MATAR O ERRO WINDOW NOT VIEWABLE ---
+        popup.update() # Apenas força a renderização inicial dos frames na GPU
+        # ------------------------------------------------------------------
+
+        popup.grid_columnconfigure(0, weight=1)
+
+        ctk.CTkLabel(popup, text="Data (DD/MM/AAAA):", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, sticky="w", padx=40, pady=(15,0))
+        txt_data = ctk.CTkEntry(popup)
+        txt_data.insert(0, data_atual)
+        txt_data.grid(row=1, column=0, sticky="ew", padx=40, pady=(0,10))
+
+        ctk.CTkLabel(popup, text="Descrição:", font=ctk.CTkFont(weight="bold")).grid(row=2, column=0, sticky="w", padx=40, pady=(5,0))
+        txt_desc = ctk.CTkEntry(popup)
+        txt_desc.insert(0, desc_atual)
+        txt_desc.grid(row=3, column=0, sticky="ew", padx=40, pady=(0,10))
+
+        ctk.CTkLabel(popup, text="Banco:", font=ctk.CTkFont(weight="bold")).grid(row=4, column=0, sticky="w", padx=40, pady=(5,0))
+        cb_banco = CTkMenuScrollavelVerdadeiro(popup, values=[c.banco for c in view.listar_contas()])
+        cb_banco.set(banco_atual)
+        cb_banco.grid(row=5, column=0, sticky="ew", padx=40, pady=(0,10))
+
+        ctk.CTkLabel(popup, text="Categoria:", font=ctk.CTkFont(weight="bold")).grid(row=6, column=0, sticky="w", padx=40, pady=(5,0))
+        cb_cat = CTkMenuScrollavelVerdadeiro(popup, values=[cat.categoria for cat in view.listar_categorias()])
+        cb_cat.set(cat_atual)
+        cb_cat.grid(row=7, column=0, sticky="ew", padx=40, pady=(0,10))
+
+        ctk.CTkLabel(popup, text="Tipo:", font=ctk.CTkFont(weight="bold")).grid(row=8, column=0, sticky="w", padx=40, pady=(5,0))
+        cb_tipo = CTkMenuScrollavelVerdadeiro(popup, values=["Entrada", "Saída"])
+        cb_tipo.set(tipo_atual)
+        cb_tipo.grid(row=9, column=0, sticky="ew", padx=40, pady=(0,10))
+
+        ctk.CTkLabel(popup, text="Valor Monetário (R$):", font=ctk.CTkFont(weight="bold")).grid(row=10, column=0, sticky="w", padx=40, pady=(5,0))
+        txt_valor = ctk.CTkEntry(popup)
+        txt_valor.insert(0, valor_atual)
+        txt_valor.grid(row=11, column=0, sticky="ew", padx=40, pady=(0,20))
+
+        def salvar():
+            try:
+                nova_data = datetime.strptime(txt_data.get().strip(), "%d/%m/%Y").date()
+                descricao = txt_desc.get().strip()
+                banco_nome = cb_banco.get().strip()
+                categoria_nome = cb_cat.get().strip()
+                tipo_str = cb_tipo.get().strip()
+                valor = float(txt_valor.get().strip().replace(".", "").replace(",", "."))
+
+                view.atualizar_historico(id_hist, descricao, valor, nova_data, banco_nome, categoria_nome, tipo_str)
+                popup.destroy()
+                messagebox.showinfo("Sucesso", "Lançamento updated e saldos recalculados!")
+                
+                self.atualizar_visao_geral()
+                self.filtrar_historico()
+            except Exception as e:
+                messagebox.showerror("Erro ao Salvar", f"Verifique as informações digitadas.\nErro: {e}", parent=popup)
+
+        btn_salvar = ctk.CTkButton(popup, text="💾 Salvar Alterações", fg_color="#2ECC71", hover_color="#27AE60", command=salvar)
+        btn_salvar.grid(row=12, column=0, sticky="ew", padx=40, pady=10)
+        
+        popup.mainloop()
 
     def excluir_movimentacao_grade(self, id_historico):
         if messagebox.askyesno("Confirmar Exclusão", f"Deseja excluir definitivamente o lançamento ID {id_historico}?\nO saldo bancário associado será corrigido automaticamente."):
@@ -950,7 +1015,6 @@ class AppFinanceiro(ctk.CTk):
                 messagebox.showerror("Erro ao excluir", str(e))
 
     def exportar_extrato_csv(self):
-        """Exporta os dados atualmente exibidos na grade para um arquivo CSV estruturado"""
         if not hasattr(self, 'ultimos_resultados_filtrados') or not self.ultimos_resultados_filtrados:
             messagebox.showwarning("Aviso", "Não existem dados filtrados na tela para exportar. Clique em Filtrar primeiro.")
             return
@@ -960,12 +1024,12 @@ class AppFinanceiro(ctk.CTk):
             filetypes=[("Arquivo CSV (Excel)", "*.csv"), ("Todos os arquivos", "*.*")],
             title="Salvar Extrato Filtrado"
         )
-        if not caminho_arquivo: return
+        if not caminho_arquivo:
+            return
 
         try:
             with open(caminho_arquivo, mode='w', newline='', encoding='utf-8-sig') as arquivo:
                 escritor = csv.writer(arquivo, delimiter=';')
-                # Cabeçalhos do relatório
                 escritor.writerow(["ID", "Data", "Descrição", "Banco", "Categoria", "Tipo", "Valor (R$)"])
                 
                 for item in self.ultimos_resultados_filtrados:
@@ -987,28 +1051,10 @@ class AppFinanceiro(ctk.CTk):
             messagebox.showerror("Erro ao exportar", f"Não foi possível salvar o arquivo:\n{e}")
 
     def salvar_linha_extrato(self, id_hist, ent_data, ent_desc, cb_banco, cb_cat, cb_tipo, ent_valor):
-        try:
-            nova_data = datetime.strptime(ent_data.get().strip(), "%d/%m/%Y").date()
-            descricao = ent_desc.get().strip()
-            
-            # Captura os dados validados direto dos nossos botões de menu customizados
-            banco_nome = cb_banco.get().strip()
-            categoria_nome = cb_cat.get().strip()
-            tipo_str = cb_tipo.get().strip()
-            
-            valor = float(ent_valor.get().strip().replace(".", "").replace(",", "."))
-
-            # Executa a atualização completa chamando a função existente no seu view.py
-            view.atualizar_historico(id_hist, descricao, valor, nova_data, banco_nome, categoria_nome, tipo_str)
-            
-            # Recarrega as duas grades para manter os saldos sincronizados em tempo de execução
-            self.atualizar_visao_geral()
-            self.filtrar_historico()
-        except Exception as e:
-            messagebox.showerror("Erro ao Salvar", f"Verifique as informações digitadas.\nErro: {e}")
+        """Função mantida para compatibilidade interna do motor gráfico"""
+        pass
 
     def exportar_extrato_pdf(self):
-        """Gera um relatório financeiro PDF corporativo, altamente estilizado com os dados filtrados"""
         if not hasattr(self, 'ultimos_resultados_filtrados') or not self.ultimos_resultados_filtrados:
             messagebox.showwarning("Aviso", "Não existem dados filtrados na tela para exportar. Clique em Filtrar primeiro.")
             return
@@ -1021,23 +1067,19 @@ class AppFinanceiro(ctk.CTk):
         if not caminho_arquivo: return
 
         try:
-            # Configuração do documento de margens fixas padrão Letter
             doc = SimpleDocTemplate(caminho_arquivo, pagesize=letter, rightMargin=36, leftMargin=36, topMargin=36, bottomMargin=54)
             elementos = []
 
-            # Configuração de Estilos de Fontes
             estilos = getSampleStyleSheet()
             estilo_titulo = ParagraphStyle('TituloPDF', parent=estilos['Heading1'], fontName='Helvetica-Bold', fontSize=22, textColor=colors.HexColor("#2C3E50"), spaceAfter=6)
             estilo_sub = ParagraphStyle('SubPDF', parent=estilos['Normal'], fontName='Helvetica', fontSize=10, textColor=colors.HexColor("#7F8C8D"), spaceAfter=15)
             estilo_celula = ParagraphStyle('CelulaPDF', parent=estilos['Normal'], fontName='Helvetica', fontSize=9, textColor=colors.HexColor("#2C3E50"))
             estilo_header = ParagraphStyle('HeaderPDF', parent=estilos['Normal'], fontName='Helvetica-Bold', fontSize=9, textColor=colors.white)
 
-            # Cabeçalho do PDF
             elementos.append(Paragraph("RELATÓRIO FINANCEIRO PESSOAL", estilo_titulo))
             data_emissao = datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
             elementos.append(Paragraph(f"Extraído em: {data_emissao} | Período: {self.txt_ext_inicio.get()} até {self.txt_ext_fim.get()}", estilo_sub))
 
-            # Montagem dos dados da Tabela
             dados_tabela = [[
                 Paragraph("ID", estilo_header),
                 Paragraph("Data", estilo_header),
@@ -1055,15 +1097,14 @@ class AppFinanceiro(ctk.CTk):
                 nome_banco = item.conta.banco if item.conta else "N/A"
                 nome_cat = item.categoria.categoria if item.categoria else "Geral"
                 
-                # Contabilidade de totais para o sumário inferior
                 if item.tipo == Tipos.ENTRADA:
                     total_entradas += item.valor
                     cor_valor_tipo = "#27AE60"
-                    texto_valor = f"R$ {item.valor:,.2f}"
+                    texto_valor = f"R$ {formatar_moeda_br(item.valor)}"
                 else:
                     total_saidas += item.valor
                     cor_valor_tipo = "#C0392B"
-                    texto_valor = f"- R$ {item.valor:,.2f}"
+                    texto_valor = f"- R$ {formatar_moeda_br(item.valor)}"
 
                 estilo_valor_dinamico = ParagraphStyle('ValPDF', parent=estilo_celula, textColor=colors.HexColor(cor_valor_tipo))
 
@@ -1077,13 +1118,11 @@ class AppFinanceiro(ctk.CTk):
                     Paragraph(texto_valor, estilo_valor_dinamico)
                 ])
 
-            # Largura das colunas em pontos (total de 540 pontos disponíveis na página)
-            larguras = [30, 60, 150, 85, 85, 50, 80]
+            larguras = [35, 65, 170, 95, 95, 50, 80]
             tabela_pdf = Table(dados_tabela, colWidths=larguras, repeatRows=1)
 
-            # Estilização visual corporativa da tabela (Grid e Linhas Zebradas)
             estilo_tabela = TableStyle([
-                ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#2C3E50")), # Cor azul escura no header
+                ('BACKGROUND', (0,0), (-1,0), colors.HexColor("#2C3E50")),
                 ('ALIGN', (0,0), (-1,-1), 'LEFT'),
                 ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
                 ('TOPPADDING', (0,0), (-1,-1), 6),
@@ -1092,7 +1131,6 @@ class AppFinanceiro(ctk.CTk):
                 ('LINEBELOW', (0,1), (-1,-1), 0.5, colors.HexColor("#ECF0F1")),
             ])
 
-            # Aplica o efeito zebrado (linhas alternadas cinza claro e branco)
             for i in range(1, len(dados_tabela)):
                 if i % 2 == 0:
                     estilo_tabela.add('BACKGROUND', (0, i), (-1, i), colors.HexColor("#F8F9F9"))
@@ -1101,16 +1139,15 @@ class AppFinanceiro(ctk.CTk):
             elementos.append(tabela_pdf)
             elementos.append(Spacer(1, 20))
 
-            # Bloco de Sumário Consolidado de Fechamento do Período
             elementos.append(Paragraph("<b>Resumo do Período Filtrado:</b>", estilo_celula))
             elementos.append(Spacer(1, 5))
             
             dados_resumo = [
-                [Paragraph(f"Total de Entradas (Crédito): <font color='#27AE60'><b>R$ {total_entradas:,.2f}</b></font>", estilo_celula)],
-                [Paragraph(f"Total de Saídas (Débito): <font color='#C0392B'><b>R$ {total_saidas:,.2f}</b></font>", estilo_celula)],
-                [Paragraph(f"Saldo Líquido no Período: <b>R$ {(total_entradas - total_saidas):,.2f}</b>", estilo_celula)]
+                [Paragraph(f"Total de Entradas (Crédito): <font color='#27AE60'><b>R$ {formatar_moeda_br(total_entradas)}</b></font>", estilo_celula)],
+                [Paragraph(f"Total de Saídas (Débito): <font color='#C0392B'><b>R$ {formatar_moeda_br(total_saidas)}</b></font>", estilo_celula)],
+                [Paragraph(f"Saldo Líquido no Período: <b>R$ {formatar_moeda_br(total_entradas - total_saidas)}</b>", estilo_celula)]
             ]
-            tabela_resumo = Table(dados_resumo, colWidths=[300])
+            tabela_resumo = Table(dados_resumo, colWidths=[540])
             tabela_resumo.setStyle(TableStyle([
                 ('BACKGROUND', (0,0), (-1,-1), colors.HexColor("#EAEDED")),
                 ('PADDING', (0,0), (-1,-1), 8),
@@ -1118,7 +1155,6 @@ class AppFinanceiro(ctk.CTk):
             ]))
             elementos.append(tabela_resumo)
 
-            # Constrói o PDF injetando o canvas numerado inteligente
             doc.build(elementos, canvasmaker=CanvasNumerado)
             messagebox.showinfo("Sucesso", "Relatório financeiro em PDF exportado com sucesso!")
         except Exception as e:
